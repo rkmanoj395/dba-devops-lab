@@ -70,7 +70,6 @@
       become_user: oracle
       register: healthcheck_result
       when: action == "healthcheck"
-      timeout: 60
 
     - name: Save health check output to log
       copy:
