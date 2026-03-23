@@ -1,0 +1,86 @@
+---
+# ============================================================
+# oracle_ops.yml
+# Purpose : Oracle listener and health check operations
+# Run     : ansible-playbook playbooks/oracle_ops.yml -e "action=status"
+# Actions : status | start | stop | healthcheck
+# ============================================================
+
+- name: Oracle operations playbook
+  hosts: oracle_servers
+  become_user: oracle
+
+  vars:
+    oracle_home: /home/oracle/db_home
+    oracle_sid: orcl
+    oracle_base: /home/oracle/oracle_base
+    health_check_sql: /home/oracle/dba-devops-lab/oracle/health-checks/instance_health.sql
+    log_dir: /home/oracle/logs/ansible
+    action: "status"   # default action — override with -e "action=start"
+
+  tasks:
+
+    - name: Create Ansible log directory
+      file:
+        path: "{{ log_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Set Oracle environment and check listener status
+      shell: |
+        export ORACLE_HOME={{ oracle_home }}
+        export PATH=$ORACLE_HOME/bin:$PATH
+        lsnrctl status
+      register: listener_result
+      changed_when: false
+      when: action == "status"
+
+    - name: Show listener status output
+      debug:
+        var: listener_result.stdout_lines
+      when: action == "status"
+
+    - name: Start Oracle listener
+      shell: |
+        export ORACLE_HOME={{ oracle_home }}
+        export PATH=$ORACLE_HOME/bin:$PATH
+        lsnrctl start
+      register: start_result
+      when: action == "start"
+
+    - name: Show listener start output
+      debug:
+        var: start_result.stdout_lines
+      when: action == "start"
+
+    - name: Stop Oracle listener
+      shell: |
+        export ORACLE_HOME={{ oracle_home }}
+        export PATH=$ORACLE_HOME/bin:$PATH
+        lsnrctl stop
+      register: stop_result
+      when: action == "stop"
+
+    - name: Run Oracle health check SQL
+      shell: |
+        export ORACLE_HOME={{ oracle_home }}
+        export ORACLE_SID={{ oracle_sid }}
+        export PATH=$ORACLE_HOME/bin:$PATH
+        sqlplus -s / as sysdba @{{ health_check_sql }}
+      register: healthcheck_result
+      when: action == "healthcheck"
+
+    - name: Save health check output to log
+      copy:
+        content: |
+          Health Check Run: {{ ansible_date_time.iso8601 }}
+          Host: {{ inventory_hostname }}
+          ========================
+          {{ healthcheck_result.stdout }}
+        dest: "{{ log_dir }}/healthcheck_{{ ansible_date_time.date }}.log"
+      when: action == "healthcheck"
+
+    - name: Show health check results
+      debug:
+        var: healthcheck_result.stdout_lines
+      when: action == "healthcheck"
