@@ -1,0 +1,53 @@
+- name: Oracle and PostgreSQL status check
+  hosts: db_servers
+  gather_facts: no
+  vars:
+    oracle_sid: orcl
+    oracle_home: /home/oracle/db_home
+
+  tasks:
+
+    - name: Check Oracle pmon process is running
+      shell: pgrep -x "ora_pmon_{{ oracle_sid }}"
+      register: oracle_pmon
+      changed_when: false
+      failed_when: false
+
+    - name: Report Oracle instance status
+      debug:
+        msg: >
+          Oracle {{ oracle_sid }} is
+          {{ 'RUNNING' if oracle_pmon.rc == 0 else 'DOWN' }}
+
+    - name: Check Oracle listener status
+      shell: "{{ oracle_home }}/bin/lsnrctl status"
+      register: listener_status
+      changed_when: false
+      failed_when: false
+
+    - name: Report listener status
+      debug:
+        msg: >
+          Listener is
+          {{ 'UP' if listener_status.rc == 0 else 'DOWN' }}
+
+    - name: Check PostgreSQL process is running
+      shell: pgrep -a postmaster
+      register: pg_service
+      changed_when: false
+      failed_when: false
+
+    - name: Report PostgreSQL status
+      debug:
+        msg: >
+          PostgreSQL is
+          {{ 'RUNNING' if pg_service.rc == 0 else 'DOWN' }}
+
+    - name: Check disk space on Oracle home
+      shell: df -h {{ oracle_home }} | tail -1
+      register: disk_info
+      changed_when: false
+
+    - name: Report disk space
+      debug:
+        msg: "Disk usage on Oracle home: {{ disk_info.stdout }}"

@@ -1,0 +1,10 @@
+#oracle group variables
+oracle_home: /home/oracle/db_home
+oracle_base: /home/oracle/oracle_base
+oracle_sid:  orcl
+oracle_user: oracle
+
+# Reference vault variables (never store actual values here)
+oracle_sys_password:    "{{ vault_oracle_sys_password }}"
+pg_admin_password:      "{{ vault_pg_admin_password }}"
+

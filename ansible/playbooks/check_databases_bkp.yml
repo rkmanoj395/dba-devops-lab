@@ -1,0 +1,29 @@
+---
+- name: Database Infrastructure Health Check
+  hosts: db_servers
+  gather_facts: no
+  
+  tasks:
+    - name: Check for Oracle PMON process
+      ansible.builtin.command: pgrep -a pmon
+      register: pmon_status
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Check PostgreSQL service status
+      ansible.builtin.command: systemctl is-active postgresql
+      register: pg_status
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Display Oracle Status
+      ansible.builtin.debug:
+        msg: >-
+          Oracle PMON is {{ 'RUNNING' if pmon_status.rc == 0 else 'DOWN' }}.
+          (Details: {{ pmon_status.stdout | default('None') }})
+      when: "'oracle_servers' in group_names"
+
+    - name: Display PostgreSQL Status
+      ansible.builtin.debug:
+        msg: "PostgreSQL is currently: {{ pg_status.stdout | upper }}"
+      when: "'postgres_servers' in group_names"

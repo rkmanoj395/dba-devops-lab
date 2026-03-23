@@ -1,0 +1,18 @@
+# ============================================================
+# Ansible Inventory — DBA Lab
+# Author: Manojkumar
+# ============================================================
+
+[oracle_servers]
+oralab ansible_host=192.168.31.179 ansible_user=oracle
+
+[postgres_servers]
+oralab ansible_host=192.168.31.179 ansible_user=oracle
+
+[db_servers:children]
+oracle_servers
+postgres_servers
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+ansible_python_interpreter=/usr/bin/python3
