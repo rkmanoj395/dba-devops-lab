@@ -66,9 +66,11 @@
         export ORACLE_HOME={{ oracle_home }}
         export ORACLE_SID={{ oracle_sid }}
         export PATH=$ORACLE_HOME/bin:$PATH
-        sqlplus -s / as sysdba @{{ health_check_sql }}
+        echo "exit" | sqlplus -s / as sysdba @{{ health_check_sql }}
+      become_user: oracle
       register: healthcheck_result
       when: action == "healthcheck"
+      timeout: 60
 
     - name: Save health check output to log
       copy:
