@@ -1,0 +1,39 @@
+# Oracle sensitive files
+*.ora.bak
+wallet/
+*.p12
+*.sso
+tnsnames.ora
+sqlnet.ora
+
+# Oracle trace and log files
+*.trc
+*.trm
+*.log
+*.aud
+
+# RMAN backupsets (binary, too large)
+*.bkp
+*.rman
+
+# PostgreSQL dumps (binary)
+*.dump
+*.pgdump
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Ansible vault (never commit unencrypted)
+*vault*password*
+.vault_pass
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor temp files
+*.swp
+*.swo
+*~
